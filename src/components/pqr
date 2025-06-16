@@ -1,0 +1,108 @@
+const extractCommentsFromRawPGN = (pgnText) => {
+  const comments = [];
+  let cleanPGN = pgnText.replace(/\[([^\]]*)\]/g, "").trim();
+  const firstMoveMatch = cleanPGN.match(/\b\d+\.\s*[a-zA-Z]/);
+
+  if (firstMoveMatch) {
+    const beforeFirstMove = cleanPGN.substring(0, firstMoveMatch.index).trim();
+    const commentRegex = /\{([^}]+)\}/g;
+    let match;
+    while ((match = commentRegex.exec(beforeFirstMove)) !== null) {
+      const commentText = match[1].trim();
+      if (commentText.length > 0) {
+        comments.push(commentText);
+      }
+    }
+  } else {
+    const commentRegex = /\{([^}]+)\}/g;
+    let match;
+    while ((match = commentRegex.exec(cleanPGN)) !== null) {
+      const commentText = match[1].trim();
+      if (commentText.length > 0) {
+        comments.push(commentText);
+      }
+    }
+  }
+
+  return comments;
+};
+
+const buildGameTree = (
+  moves,
+  parentNode,
+  startMoveNumber = 1,
+  isBlackToMove = false,
+  introductoryComments = []
+) => {
+  // Add introductory comments to the root node
+  if (parentNode === gameTree) {
+    introductoryComments.forEach((comment) => {
+      parentNode.addChild({
+        san: null,
+        comment: comment,
+        isBlackMove: false,
+        moveNumber: 0,
+        ply: 0,
+      });
+    });
+  }
+
+  let currentNode = parentNode;
+  let moveNumber = startMoveNumber;
+  let blackToMove = isBlackToMove;
+
+  for (let i = 0; i < moves.length; i++) {
+    const move = moves[i];
+    let allComments = [];
+
+    if (move.comments && move.comments.length > 0) {
+      allComments.push(...move.comments.map((c) => c.text));
+    }
+
+    if (move.comment) {
+      allComments.push(move.comment);
+    }
+
+    const combinedComment = allComments.length > 0 ? allComments.join("\n").trim() : null;
+
+    const moveData = {
+      san: move.move,
+      comment: combinedComment,
+      isBlackMove: blackToMove,
+      moveNumber: moveNumber,
+      ply: (moveNumber - 1) * 2 + (blackToMove ? 2 : 1),
+    };
+
+    const newNode = currentNode.addChild(moveData);
+    const allVariations = [...(move.variations || []), ...(move.ravs || [])];
+
+    for (const variation of allVariations) {
+      buildGameTree(variation.moves, currentNode, moveNumber, blackToMove);
+    }
+
+    currentNode = newNode;
+    if (blackToMove) moveNumber++;
+    blackToMove = !blackToMove;
+  }
+};
+
+// In the parsePGNIntoTree function, extract introductory comments and pass them to buildGameTree
+const parsePGNIntoTree = (pgn, root) => {
+  try {
+    const parsed = parse(pgn);
+    if (parsed.length > 0) {
+      const game = parsed[0];
+      const introductoryComments = extractCommentsFromRawPGN(pgn);
+
+      if (game.moves?.length > 0) {
+        buildGameTree(game.moves, root, 1, false, introductoryComments);
+      } else {
+        // If no moves, still add introductory comments to the root
+        buildGameTree([], root, 1, false, introductoryComments);
+      }
+    }
+  } catch (err) {
+    console.error("Invalid PGN:", err);
+    setGameComments([]); // Reset on error
+  }
+};
