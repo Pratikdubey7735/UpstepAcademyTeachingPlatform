@@ -7,8 +7,8 @@ export const AuthProvider = ({ children }) => {
   const [currentCoach, setCurrentCoach] = useState(null);
 
   useEffect(() => {
-    // Check localStorage for coach data on initial load
-    const storedCoach = localStorage.getItem("coach");
+    // Check sessionStorage for coach data on initial load
+    const storedCoach = sessionStorage.getItem("coach");
     if (storedCoach) {
       try {
         const parsedCoach = JSON.parse(storedCoach);
@@ -22,25 +22,27 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (coachData) => {
+    
     setIsLoggedIn(true);
     setCurrentCoach(coachData);
-    // Store the entire coach object (without password) in localStorage
-    localStorage.setItem("coach", JSON.stringify(coachData));
+    // Store in sessionStorage instead of localStorage
+    sessionStorage.setItem("coach", JSON.stringify(coachData));
+    sessionStorage.setItem("userLevel", coachData.level); 
   };
 
   const logout = () => {
     setIsLoggedIn(false);
     setCurrentCoach(null);
-    localStorage.removeItem("coach");
-    // Optional: You might want to redirect to login page here
+    sessionStorage.removeItem("coach");
+    sessionStorage.removeItem("userLevel");
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      isLoggedIn, 
-      currentCoach, 
-      login, 
-      logout 
+    <AuthContext.Provider value={{
+      isLoggedIn,
+      currentCoach,
+      login,
+      logout
     }}>
       {children}
     </AuthContext.Provider>
