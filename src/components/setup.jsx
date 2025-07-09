@@ -25,8 +25,51 @@ const Upload = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [fileCache, setFileCache] = useState({});
   const [eventCache, setEventCache] = useState({});
+  const [userLevel, setUserLevel] = useState("");
+  const [allowedCategories, setAllowedCategories] = useState([]);
 
   const navigate = useNavigate();
+
+  // Define category hierarchy
+  const categoryHierarchy = [
+    "Beginner",
+    "AdvancedBeginner", 
+    "Intermediate",
+    "AdvancedPart1",
+    "AdvancedPart2",
+    "SubJunior",
+    "Junior",
+    "SeniorPart1",
+    "SeniorPart2"
+  ];
+
+  // Get user level and set allowed categories on component mount
+  useEffect(() => {
+    const storedUserLevel = sessionStorage.getItem("userLevel");
+    console.log("User level from sessionStorage:", storedUserLevel);
+    
+    if (storedUserLevel) {
+      setUserLevel(storedUserLevel);
+      
+      // Find the index of user's level in hierarchy
+      const userLevelIndex = categoryHierarchy.findIndex(cat => cat === storedUserLevel);
+      
+      if (userLevelIndex !== -1) {
+        // Allow categories from start up to user's level (inclusive)
+        const allowed = categoryHierarchy.slice(0, userLevelIndex + 1);
+        setAllowedCategories(allowed);
+        console.log("Allowed categories:", allowed);
+      } else {
+        // If user level not found in hierarchy, default to just Beginner
+        setAllowedCategories(["Beginner"]);
+        console.log("User level not found in hierarchy, defaulting to Beginner only");
+      }
+    } else {
+      // If no user level stored, default to just Beginner
+      setAllowedCategories(["Beginner"]);
+      console.log("No user level found, defaulting to Beginner only");
+    }
+  }, []);
 
   // Fetch files with caching and abort controller
   useEffect(() => {
@@ -41,11 +84,16 @@ const Upload = () => {
     // Setup abort controller for cleanup
     const controller = new AbortController();
     const signal = controller.signal;
-    
+
     setIsLoading(true);
-    
-    console.log(`Fetching PGN files from: https://backendteachingplatform.onrender.com/api/pgn-files?level=${level}`);
-    fetch(`https://backendteachingplatform.onrender.com/api/pgn-files?level=${level}`, { signal })
+
+    console.log(
+      `Fetching PGN files from: https://backendteachingplatform.onrender.com/api/pgn-files?level=${level}`
+    );
+    fetch(
+      `https://backendteachingplatform.onrender.com/api/pgn-files?level=${level}`,
+      { signal }
+    )
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -56,14 +104,14 @@ const Upload = () => {
         if (Array.isArray(data)) {
           setPgnFiles(data);
           // Update cache
-          setFileCache(prev => ({...prev, [level]: data}));
+          setFileCache((prev) => ({ ...prev, [level]: data }));
         } else {
           console.error("Expected an array from the response:", data);
           setPgnFiles([]);
         }
       })
       .catch((error) => {
-        if (error.name !== 'AbortError') {
+        if (error.name !== "AbortError") {
           console.error("Error fetching PGN files:", error);
           setPgnFiles([]);
         }
@@ -80,46 +128,49 @@ const Upload = () => {
     navigate("/demo");
   };
 
-  const handleFileSelect = useCallback((event) => {
-    const selectedUrl = event.target.value;
-    setSelectedFile(selectedUrl);
+  const handleFileSelect = useCallback(
+    (event) => {
+      const selectedUrl = event.target.value;
+      setSelectedFile(selectedUrl);
 
-    if (!selectedUrl) {
-      setEvents([]);
-      return;
-    }
-
-    // Check cache for this file
-    if (eventCache[selectedUrl]) {
-      setEvents(eventCache[selectedUrl]);
-      setCurrentIndex(0);
-      return;
-    }
-
-    setIsLoading(true);
-    
-    fetch(selectedUrl)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.text();
-      })
-      .then((content) => {
-        const parsedEvents = parsePGN(content);
-        setEvents(parsedEvents);
-        setCurrentIndex(0);
-        // Cache the parsed events
-        setEventCache(prev => ({...prev, [selectedUrl]: parsedEvents}));
-      })
-      .catch((error) => {
-        console.error("Error loading PGN file:", error);
+      if (!selectedUrl) {
         setEvents([]);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [eventCache]);
+        return;
+      }
+
+      // Check cache for this file
+      if (eventCache[selectedUrl]) {
+        setEvents(eventCache[selectedUrl]);
+        setCurrentIndex(0);
+        return;
+      }
+
+      setIsLoading(true);
+
+      fetch(selectedUrl)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.text();
+        })
+        .then((content) => {
+          const parsedEvents = parsePGN(content);
+          setEvents(parsedEvents);
+          setCurrentIndex(0);
+          // Cache the parsed events
+          setEventCache((prev) => ({ ...prev, [selectedUrl]: parsedEvents }));
+        })
+        .catch((error) => {
+          console.error("Error loading PGN file:", error);
+          setEvents([]);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    },
+    [eventCache]
+  );
 
   const parsePGN = (content) => {
     const regex = /(?=\[Event\s)/g;
@@ -147,7 +198,9 @@ const Upload = () => {
     IntermediateHomework: [{ value: "InterHome", label: "Homework" }],
     AdvancedPart1Classwork: [{ value: "AdvanPart1Class", label: "Classwork" }],
     AdvancedPart1Homework: [{ value: "AdvanPart1Home", label: "Homework" }],
-    AdvancedPart2Classwork: [{ value: "AdvancePart2Class", label: "Classwork" }],
+    AdvancedPart2Classwork: [
+      { value: "AdvancePart2Class", label: "Classwork" },
+    ],
     AdvancedPart2Homework: [{ value: "AdvPart2Home", label: "Homework" }],
     Junior_Classwork: [
       { value: "Jr1C", label: "Jr1" },
@@ -203,7 +256,7 @@ const Upload = () => {
       { value: "Sr9C", label: "Sr9" },
       { value: "Sr10C", label: "Sr10" },
       { value: "Sr11C", label: "Sr11" },
-      { value: "Sr12C", label: "Sr12" }, // Fixed typo from Sr11 to Sr12
+      { value: "Sr12C", label: "Sr12" },
     ],
     Senior_Part2_Homework: [
       { value: "Sr7H", label: "Sr7" },
@@ -211,7 +264,7 @@ const Upload = () => {
       { value: "Sr9H", label: "Sr9" },
       { value: "Sr10H", label: "Sr10" },
       { value: "Sr11H", label: "Sr11" },
-      { value: "Sr12H", label: "Sr12" }, // Fixed typo from Sr11 to Sr12
+      { value: "Sr12H", label: "Sr12" },
     ],
   };
 
@@ -223,33 +276,42 @@ const Upload = () => {
     setCurrentIndex((prevIndex) => Math.min(prevIndex + 1, events.length - 1));
   }, [events.length]);
 
-  // Replace this function in your code
-const handleKeyDown = useCallback((event) => {
-  if (event.key === "F11") {
-    event.preventDefault(); // Prevent default F11 fullscreen behavior
-    if (event.ctrlKey) {
-      handlePrevious();
-    } else {
-      handleNext();
-    }
-  } else if (event.key === "Escape") {
-    setIsFullscreen(false);
-    if (document.exitFullscreen) {
-      document.exitFullscreen().catch((err) => console.error(err));
-    }
-  }
-}, [handleNext, handlePrevious]);
+  // Fixed keyboard navigation - now works in both fullscreen and half-screen
+  const handleKeyDown = useCallback(
+    (event) => {
+      // Only handle navigation if we have events loaded
+      if (events.length === 0) return;
 
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        handlePrevious();
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        handleNext();
+      } else if (event.key === "F11") {
+        event.preventDefault(); 
+        if (event.ctrlKey) {
+          handlePrevious();
+        } else {
+          handleNext();
+        }
+      } else if (event.key === "Escape") {
+        setIsFullscreen(false);
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch((err) => console.error(err));
+        }
+      }
+    },
+    [handleNext, handlePrevious, events.length]
+  );
+
+  // Fixed: Add keyboard event listener regardless of fullscreen state
   useEffect(() => {
-    if (isFullscreen) {
-      document.addEventListener("keydown", handleKeyDown);
-    } else {
-      document.removeEventListener("keydown", handleKeyDown);
-    }
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isFullscreen, handleKeyDown]);
+  }, [handleKeyDown]);
 
   const toggleFullscreen = useCallback(() => {
     // Check if there are events loaded
@@ -257,14 +319,15 @@ const handleKeyDown = useCallback((event) => {
       alert("Please select a chapter first before entering fullscreen mode");
       return;
     }
-    
+
     if (!isFullscreen) {
       document.documentElement
         .requestFullscreen()
         .then(() => setIsFullscreen(true))
         .catch((err) => console.error(err));
     } else {
-      document.exitFullscreen()
+      document
+        .exitFullscreen()
         .then(() => setIsFullscreen(false))
         .catch((err) => console.error(err));
     }
@@ -283,7 +346,7 @@ const handleKeyDown = useCallback((event) => {
       : category === "AdvancedPart2"
       ? ["AdvancedPart2Classwork", "AdvancedPart2Homework"]
       : category === "Junior"
-      ? ["Junior_Classwork", "Junior_Homework"] 
+      ? ["Junior_Classwork", "Junior_Homework"]
       : category === "SubJunior"
       ? ["Sub_Junior_Classwork", "Sub_Junior_Homework"]
       : category === "SeniorPart2"
@@ -292,55 +355,60 @@ const handleKeyDown = useCallback((event) => {
   }, [category]);
 
   // Prefetch category data when hovering over category buttons
-  const handleCategoryHover = useCallback((cat) => {
-    const levelsForCategory = 
-      cat === "Beginner"
-        ? ["BeginnerClasswork", "BeginnerHomework"]
-        : cat === "AdvancedBeginner"
-        ? ["AdvancedBeginnerClasswork", "AdvancedBeginnerHomework"]
-        : cat === "Intermediate"
-        ? ["IntermediateClasswork", "IntermediateHomework"]
-        : cat === "AdvancedPart1"
-        ? ["AdvancedPart1Classwork", "AdvancedPart1Homework"]
-        : cat === "AdvancedPart2"
-        ? ["AdvancedPart2Classwork", "AdvancedPart2Homework"]
-        : cat === "Junior"
-        ? ["Junior_Classwork", "Junior_Homework"] 
-        : cat === "SubJunior"
-        ? ["Sub_Junior_Classwork", "Sub_Junior_Homework"]
-        : cat === "SeniorPart2"
-        ? ["Senior_Part2_Classwork", "Senior_Part2_Homework"]
-        : ["Senior_Part1_Classwork", "Senior_Part1_Homework"];
-    
-    // For each level in this category, look at the first option
-    levelsForCategory.forEach(levelName => {
-      const levelOptions = levels[levelName] || [];
-      if (levelOptions.length > 0) {
-        const value = levelOptions[0].value;
-        
-        // If we don't have this level cached, prefetch it
-        if (!fileCache[value]) {
-          const prefetchController = new AbortController();
-          
-          // Low priority fetch that can be aborted
-          fetch(`https://backendteachingplatform.onrender.com/api/pgn-files?level=${value}`, 
-            { signal: prefetchController.signal })
-            .then(response => response.json())
-            .then(data => {
-              if (Array.isArray(data)) {
-                setFileCache(prev => ({...prev, [value]: data}));
-              }
-            })
-            .catch(() => {
-              // Ignore prefetch errors
-            });
-            
-          // Abort prefetch after 5 seconds if not completed
-          setTimeout(() => prefetchController.abort(), 5000);
+  const handleCategoryHover = useCallback(
+    (cat) => {
+      const levelsForCategory =
+        cat === "Beginner"
+          ? ["BeginnerClasswork", "BeginnerHomework"]
+          : cat === "AdvancedBeginner"
+          ? ["AdvancedBeginnerClasswork", "AdvancedBeginnerHomework"]
+          : cat === "Intermediate"
+          ? ["IntermediateClasswork", "IntermediateHomework"]
+          : cat === "AdvancedPart1"
+          ? ["AdvancedPart1Classwork", "AdvancedPart1Homework"]
+          : cat === "AdvancedPart2"
+          ? ["AdvancedPart2Classwork", "AdvancedPart2Homework"]
+          : cat === "Junior"
+          ? ["Junior_Classwork", "Junior_Homework"]
+          : cat === "SubJunior"
+          ? ["Sub_Junior_Classwork", "Sub_Junior_Homework"]
+          : cat === "SeniorPart2"
+          ? ["Senior_Part2_Classwork", "Senior_Part2_Homework"]
+          : ["Senior_Part1_Classwork", "Senior_Part1_Homework"];
+
+      // For each level in this category, look at the first option
+      levelsForCategory.forEach((levelName) => {
+        const levelOptions = levels[levelName] || [];
+        if (levelOptions.length > 0) {
+          const value = levelOptions[0].value;
+
+          // If we don't have this level cached, prefetch it
+          if (!fileCache[value]) {
+            const prefetchController = new AbortController();
+
+            // Low priority fetch that can be aborted
+            fetch(
+              `https://backendteachingplatform.onrender.com/api/pgn-files?level=${value}`,
+              { signal: prefetchController.signal }
+            )
+              .then((response) => response.json())
+              .then((data) => {
+                if (Array.isArray(data)) {
+                  setFileCache((prev) => ({ ...prev, [value]: data }));
+                }
+              })
+              .catch(() => {
+                // Ignore prefetch errors
+              });
+
+            // Abort prefetch after 5 seconds if not completed
+            setTimeout(() => prefetchController.abort(), 5000);
+          }
         }
-      }
-    });
-  }, [fileCache, levels]);
+      });
+    },
+    [fileCache, levels]
+  );
 
   return (
     <div
@@ -365,21 +433,16 @@ const handleKeyDown = useCallback((event) => {
       ) : (
         <div className="w-full">
           <div className="bg-white p-6 rounded-lg shadow-lg mb-6 w-full">
+            {/* Display user level info */}
+            {userLevel && (
+             <></>
+            )}
+
             <h2 className="text-2xl font-semibold mb-4 text-gray-800">
               Select Category
             </h2>
             <div className="flex flex-wrap gap-4 mb-4">
-              {[
-                "Beginner",
-                "AdvancedBeginner",
-                "Intermediate",
-                "AdvancedPart1",
-                "AdvancedPart2",
-                "SubJunior",
-                "Junior",
-                "SeniorPart1",
-                "SeniorPart2",
-              ].map((cat) => (
+              {allowedCategories.map((cat) => (
                 <a
                   href={`/category/${cat}`}
                   target="_blank"
@@ -401,6 +464,15 @@ const handleKeyDown = useCallback((event) => {
                 </a>
               ))}
             </div>
+
+            {/* Show message if no allowed categories */}
+            {allowedCategories.length === 0 && (
+              <div className="mb-4 p-3 bg-yellow-100 rounded-md">
+                <p className="text-yellow-800">
+                  Loading your available categories...
+                </p>
+              </div>
+            )}
 
             <h2 className="text-2xl font-semibold mb-4 text-gray-800">
               Select Level
@@ -490,6 +562,9 @@ const handleKeyDown = useCallback((event) => {
                 )
               )}
             </div>
+
+           
+           
           </div>
         </div>
       )}
@@ -499,7 +574,9 @@ const handleKeyDown = useCallback((event) => {
             onClick={toggleFullscreen}
             disabled={!events.length}
             className={`mt-4 p-3 rounded-md ${
-              events.length ? "bg-green-600 hover:bg-green-700" : "bg-gray-400 cursor-not-allowed"
+              events.length
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-gray-400 cursor-not-allowed"
             } text-white focus:outline-none focus:ring focus:ring-green-300`}
           >
             {events.length ? "Enter Fullscreen" : "Select a Chapter First"}

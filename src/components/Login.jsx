@@ -20,8 +20,7 @@ export default function LoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
-    
-    // Basic validation
+
     if (!email || !password) {
       setErrorMessage("Please enter both email and password");
       return;
@@ -44,17 +43,21 @@ export default function LoginForm() {
         throw new Error(data.error || "Login failed");
       }
 
-      // Call login from context with coach data
-      login(data.data);
-      navigate("/dashboard");
+      // ✅ Store level in sessionStorage
+      sessionStorage.setItem("userLevel", data.data.level);
 
+      // ✅ Log in via context
+      login(data.data);
+
+      // ✅ Navigate
+      navigate("/dashboard");
     } catch (error) {
       setErrorMessage(error.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -84,7 +87,10 @@ export default function LoginForm() {
           ) : (
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="flex flex-col">
-                <label htmlFor="email" className="text-sm font-semibold text-gray-900">
+                <label
+                  htmlFor="email"
+                  className="text-sm font-semibold text-gray-900"
+                >
                   Email
                 </label>
                 <input
@@ -99,7 +105,10 @@ export default function LoginForm() {
               </div>
 
               <div className="flex flex-col">
-                <label htmlFor="password" className="text-sm font-semibold text-gray-900">
+                <label
+                  htmlFor="password"
+                  className="text-sm font-semibold text-gray-900"
+                >
                   Password
                 </label>
                 <input
@@ -114,7 +123,9 @@ export default function LoginForm() {
               </div>
 
               {errorMessage && (
-                <p className="text-sm text-red-500 text-center">{errorMessage}</p>
+                <p className="text-sm text-red-500 text-center">
+                  {errorMessage}
+                </p>
               )}
 
               <button

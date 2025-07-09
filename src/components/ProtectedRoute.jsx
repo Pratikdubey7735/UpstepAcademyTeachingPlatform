@@ -10,7 +10,6 @@ const ProtectedRoute = ({ element: Component }) => {
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
-
   return <Component />;
 };
 
