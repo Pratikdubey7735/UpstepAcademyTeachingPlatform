@@ -39,7 +39,7 @@ function NOTFEN({ event }) {
   const [availableVariations, setAvailableVariations] = useState([]);
   const [showSizeDialog, setShowSizeDialog] = useState(false);
   const [boardSize, setBoardSize] = useState(600);
-  const [textSize, setTextSize] = useState(24);
+ const [textSize, setTextSize] = useState(24);
   const [showNewVariationDialog, setShowNewVariationDialog] = useState(false);
 
   const boardRef = useRef(null);
@@ -305,42 +305,42 @@ function NOTFEN({ event }) {
   };
 
   useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "f" && event.ctrlKey) {
-        event.preventDefault();
-        setBoardOrientation((prev) => (prev === "white" ? "black" : "white"));
-      } else if (event.ctrlKey && event.altKey && event.shiftKey) {
-        // Red
-        setArrowColor("rgba(255, 0, 0, 0.7)");
-        setCurrentHighlightColor("rgba(255, 0, 0, 0.7)");
-      } else if (event.ctrlKey && event.altKey) {
-        // Yellow
-        setArrowColor("rgba(255, 255, 0, 0.7)");
-        setCurrentHighlightColor("rgba(255, 255, 0, 0.5)");
-      } else if (event.altKey) {
-        // Purple
-        setArrowColor("rgba(128, 0, 128, 0.7)");
-        setCurrentHighlightColor("rgba(128, 0, 128, 0.5)");
-      } else if (event.shiftKey) {
-        // Green
-        setArrowColor("rgba(0, 255, 0, 0.7)");
-        setCurrentHighlightColor("rgba(0, 255, 0, 0.7)");
-      }
-    };
-
-    const handleKeyUp = () => {
-      setArrowColor("rgba(0, 255, 0, 0.7)");
-      setCurrentHighlightColor("rgba(0, 255, 0, 0.7)");
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-    };
-  }, []);
+     const handleKeyDown = (event) => {
+       if (event.key === "f" && event.ctrlKey) {
+         event.preventDefault();
+         setBoardOrientation((prev) => (prev === "white" ? "black" : "white"));
+       } else if (event.ctrlKey && event.altKey && event.shiftKey) {
+         // Red
+         setArrowColor("rgba(255, 0, 0, 0.7)");
+         setCurrentHighlightColor("rgba(255, 0, 0, 0.7)");
+       } else if (event.ctrlKey && event.altKey) {
+         // Yellow
+         setArrowColor("rgba(255, 255, 0, 0.7)");
+         setCurrentHighlightColor("rgba(255, 255, 0, 0.5)");
+       } else if (event.altKey) {
+         // Purple
+         setArrowColor("rgba(128, 0, 128, 0.7)");
+         setCurrentHighlightColor("rgba(128, 0, 128, 0.5)");
+       } else if (event.shiftKey) {
+         // Green
+         setArrowColor("rgba(0, 255, 0, 0.7)");
+         setCurrentHighlightColor("rgba(0, 255, 0, 0.7)");
+       }
+     };
+ 
+     const handleKeyUp = () => {
+       setArrowColor("rgba(0, 255, 0, 0.7)");
+       setCurrentHighlightColor("rgba(0, 255, 0, 0.7)");
+     };
+ 
+     window.addEventListener("keydown", handleKeyDown);
+     window.addEventListener("keyup", handleKeyUp);
+ 
+     return () => {
+       window.removeEventListener("keydown", handleKeyDown);
+       window.removeEventListener("keyup", handleKeyUp);
+     };
+   }, []);
 
   useEffect(() => {
     const handleKeyNavigation = (event) => {

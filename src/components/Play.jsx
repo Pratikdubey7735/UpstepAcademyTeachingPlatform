@@ -34,7 +34,7 @@ function NOTFEN({ event }) {
   const [availableVariations, setAvailableVariations] = useState([]);
   const [showSizeDialog, setShowSizeDialog] = useState(false);
   const [boardSize, setBoardSize] = useState(690);
-  const [textSize, setTextSize] = useState(24);
+   const [textSize, setTextSize] = useState(24);
   const [showNewVariationDialog, setShowNewVariationDialog] = useState(false);
 
   const boardRef = useRef(null);
