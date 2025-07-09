@@ -562,46 +562,6 @@ const Upload = () => {
                 )
               )}
             </div>
-
-            {/* Navigation controls for half-screen mode */}
-            {events.length > 0 && (
-              <div className="flex justify-between items-center mb-4">
-                <button
-                  onClick={handlePrevious}
-                  disabled={currentIndex === 0}
-                  className={`px-4 py-2 rounded-md ${
-                    currentIndex === 0
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  }`}
-                >
-                  Previous Position
-                </button>
-                
-                <span className="text-gray-700">
-                  Position {currentIndex + 1} of {events.length}
-                </span>
-                
-                <button
-                  onClick={handleNext}
-                  disabled={currentIndex === events.length - 1}
-                  className={`px-4 py-2 rounded-md ${
-                    currentIndex === events.length - 1
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  }`}
-                >
-                  Next Position
-                </button>
-              </div>
-            )}
-
-            {/* Keyboard shortcuts info */}
-            {events.length > 0 && (
-              <div className="text-sm text-gray-600 mb-4">
-                <p>Keyboard shortcuts: Use ↑ and ↓ arrow keys to navigate between positions</p>
-              </div>
-            )}
           </div>
         </div>
       )}

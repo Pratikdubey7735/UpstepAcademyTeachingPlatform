@@ -10,10 +10,10 @@ function NOTFEN({ event }) {
   const [boardPosition, setBoardPosition] = useState({}); // Track piece positions
 
   const [highlightedSquares, setHighlightedSquares] = useState([]);
-  const [arrowColor, setArrowColor] = useState("rgba(255, 0, 0, 0.7)");
+  const [arrowColor, setArrowColor] = useState("rgba(0, 255, 0, 0.7)");
   const [arrows, setArrows] = useState([]);
   const [currentHighlightColor, setCurrentHighlightColor] = useState(
-    "rgba(255, 0, 0, 0.5)"
+    "rgba(0, 255, 0, 0.7)"
   );
   const [gameOutcome, setGameOutcome] = useState(null);
 
@@ -39,6 +39,7 @@ function NOTFEN({ event }) {
   const [availableVariations, setAvailableVariations] = useState([]);
   const [showSizeDialog, setShowSizeDialog] = useState(false);
   const [boardSize, setBoardSize] = useState(600);
+  const [textSize, setTextSize] = useState(24);
   const [showNewVariationDialog, setShowNewVariationDialog] = useState(false);
 
   const boardRef = useRef(null);
@@ -308,24 +309,28 @@ function NOTFEN({ event }) {
       if (event.key === "f" && event.ctrlKey) {
         event.preventDefault();
         setBoardOrientation((prev) => (prev === "white" ? "black" : "white"));
+      } else if (event.ctrlKey && event.altKey && event.shiftKey) {
+        // Red
+        setArrowColor("rgba(255, 0, 0, 0.7)");
+        setCurrentHighlightColor("rgba(255, 0, 0, 0.7)");
       } else if (event.ctrlKey && event.altKey) {
+        // Yellow
         setArrowColor("rgba(255, 255, 0, 0.7)");
         setCurrentHighlightColor("rgba(255, 255, 0, 0.5)");
-      } else if (event.shiftKey && event.altKey) {
-        setArrowColor("rgba(255, 0, 0, 0.7)");
-        setCurrentHighlightColor("rgba(255, 0, 0, 0.5)");
       } else if (event.altKey) {
-        setArrowColor("rgba(0, 255, 0, 0.7)");
-        setCurrentHighlightColor("rgba(0, 255, 0, 0.5)");
-      } else if (event.shiftKey) {
+        // Purple
         setArrowColor("rgba(128, 0, 128, 0.7)");
-        setCurrentHighlightColor("rgba(128, 0, 128, 0.7)");
+        setCurrentHighlightColor("rgba(128, 0, 128, 0.5)");
+      } else if (event.shiftKey) {
+        // Green
+        setArrowColor("rgba(0, 255, 0, 0.7)");
+        setCurrentHighlightColor("rgba(0, 255, 0, 0.7)");
       }
     };
 
-    const handleKeyUp = (event) => {
-      setArrowColor("rgba(255, 0, 0, 0.7)");
-      setCurrentHighlightColor("rgba(255, 0, 0, 0.5)");
+    const handleKeyUp = () => {
+      setArrowColor("rgba(0, 255, 0, 0.7)");
+      setCurrentHighlightColor("rgba(0, 255, 0, 0.7)");
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -771,66 +776,70 @@ function NOTFEN({ event }) {
   };
 
   const handleVariationChoice = (chosenIndex) => {
-  setShowVariationPrompt(false);
-  if (chosenIndex !== null) {
-    navigateToPosition([...currentPosition, chosenIndex]);
-  }
-  setAvailableVariations([]);
-};
-
-// Add a simple move list display (optional):
-const renderSimpleMoveList = () => {
-  return (
-    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-      <h5 className="font-semibold mb-2">Move History:</h5>
-      <div className="flex flex-wrap gap-2">
-        {moveHistory.map((move, index) => (
-          <span
-            key={index}
-            className={`px-2 py-1 rounded text-sm cursor-pointer transition-colors ${
-              index === currentMoveIndex
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 hover:bg-gray-300'
-            }`}
-            onClick={() => {
-              // Navigate to specific move in history
-              const targetPath = Array(index + 1).fill().map((_, i) => 0);
-              navigateToPosition(targetPath);
-            }}
-          >
-            {Math.floor(index / 2) + 1}{index % 2 === 0 ? '.' : '...'}{formatMoveForDisplay(move)}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Add keyboard shortcuts for easier navigation:
-useEffect(() => {
-  const handleKeydown = (e) => {
-    if (e.key === 'Delete' && currentPosition.length > 0) {
-      // Delete current move/variation
-      const parentPath = currentPosition.slice(0, -1);
-      const childIndex = currentPosition[currentPosition.length - 1];
-      
-      if (gameTree) {
-        const parentNode = gameTree.getNodeByPath(parentPath);
-        if (parentNode && childIndex < parentNode.children.length) {
-          parentNode.children.splice(childIndex, 1);
-          // Update main line flags
-          parentNode.children.forEach((child, index) => {
-            child.isMainLine = index === 0;
-          });
-          navigateToPosition(parentPath);
-        }
-      }
+    setShowVariationPrompt(false);
+    if (chosenIndex !== null) {
+      navigateToPosition([...currentPosition, chosenIndex]);
     }
+    setAvailableVariations([]);
   };
 
-  window.addEventListener('keydown', handleKeydown);
-  return () => window.removeEventListener('keydown', handleKeydown);
-}, [currentPosition, gameTree]);
+  // Add a simple move list display (optional):
+  const renderSimpleMoveList = () => {
+    return (
+      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+        <h5 className="font-semibold mb-2">Move History:</h5>
+        <div className="flex flex-wrap gap-2">
+          {moveHistory.map((move, index) => (
+            <span
+              key={index}
+              className={`px-2 py-1 rounded text-sm cursor-pointer transition-colors ${
+                index === currentMoveIndex
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
+              onClick={() => {
+                // Navigate to specific move in history
+                const targetPath = Array(index + 1)
+                  .fill()
+                  .map((_, i) => 0);
+                navigateToPosition(targetPath);
+              }}
+            >
+              {Math.floor(index / 2) + 1}
+              {index % 2 === 0 ? "." : "..."}
+              {formatMoveForDisplay(move)}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Add keyboard shortcuts for easier navigation:
+  useEffect(() => {
+    const handleKeydown = (e) => {
+      if (e.key === "Delete" && currentPosition.length > 0) {
+        // Delete current move/variation
+        const parentPath = currentPosition.slice(0, -1);
+        const childIndex = currentPosition[currentPosition.length - 1];
+
+        if (gameTree) {
+          const parentNode = gameTree.getNodeByPath(parentPath);
+          if (parentNode && childIndex < parentNode.children.length) {
+            parentNode.children.splice(childIndex, 1);
+            // Update main line flags
+            parentNode.children.forEach((child, index) => {
+              child.isMainLine = index === 0;
+            });
+            navigateToPosition(parentPath);
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeydown);
+    return () => window.removeEventListener("keydown", handleKeydown);
+  }, [currentPosition, gameTree]);
   const getFormattedMove = (
     move,
     isFirstMoveInLine = false,
@@ -1018,7 +1027,7 @@ useEffect(() => {
                 customSquareStyles={renderHighlightedSquares()}
                 onSquareClick={onSquareClick}
                 customNotationStyle={{
-                  fontSize: "25px",
+                  fontSize: `${textSize}px`,
                   fontWeight: "bold",
                   color: "black",
                 }}
@@ -1078,7 +1087,7 @@ useEffect(() => {
                   }}
                   className="bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition duration-200 text-sm font-medium"
                 >
-                  {questionVisible ? "Hide" : "Show"} Event
+                  {questionVisible ? "Hide" : "Show"} Moves
                 </button>
 
                 <button
@@ -1198,9 +1207,10 @@ useEffect(() => {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
           <div className="bg-white p-6 rounded-2xl shadow-2xl border border-blue-500 w-full max-w-md transform transition-all scale-100">
             <h3 className="text-xl font-semibold text-blue-700 text-center mb-6">
-              Adjust Board Size
+              Adjust Board & Text Size
             </h3>
 
+            {/* Board Size */}
             <div className="text-center mb-4">
               <span className="text-2xl font-bold text-blue-600">
                 {boardSize}px
@@ -1224,29 +1234,7 @@ useEffect(() => {
                     }%, #e5e7eb 100%)`,
                   }}
                 />
-                <style jsx>{`
-                  .slider::-webkit-slider-thumb {
-                    appearance: none;
-                    height: 20px;
-                    width: 20px;
-                    border-radius: 50%;
-                    background: #3b82f6;
-                    cursor: pointer;
-                    border: 2px solid white;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                  }
-                  .slider::-moz-range-thumb {
-                    height: 20px;
-                    width: 20px;
-                    border-radius: 50%;
-                    background: #3b82f6;
-                    cursor: pointer;
-                    border: 2px solid white;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                  }
-                `}</style>
               </div>
-
               <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
                 <span>Small (400px)</span>
                 <span>Large (650px)</span>
@@ -1255,39 +1243,74 @@ useEffect(() => {
 
             <div className="mb-6">
               <p className="text-sm text-gray-600 mb-2 text-center">
-                Quick sizes:
+                Quick board sizes:
               </p>
               <div className="flex justify-center gap-2">
-                <button
-                  onClick={() => setBoardSize(450)}
-                  className={`px-3 py-1 text-xs rounded-md transition-all ${
-                    boardSize === 450
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
-                >
-                  Small
-                </button>
-                <button
-                  onClick={() => setBoardSize(550)}
-                  className={`px-3 py-1 text-xs rounded-md transition-all ${
-                    boardSize === 550
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
-                >
-                  Medium
-                </button>
-                <button
-                  onClick={() => setBoardSize(650)}
-                  className={`px-3 py-1 text-xs rounded-md transition-all ${
-                    boardSize === 650
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
-                >
-                  Large
-                </button>
+                {[450, 550, 650].map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setBoardSize(size)}
+                    className={`px-3 py-1 text-xs rounded-md transition-all ${
+                      boardSize === size
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    {size === 450 ? "Small" : size === 550 ? "Medium" : "Large"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Text Size */}
+            <div className="text-center mb-4">
+              <span className="text-2xl font-bold text-green-600">
+                {textSize}px
+              </span>
+            </div>
+
+            <div className="mb-6">
+              <div className="relative">
+                <input
+                  type="range"
+                  min="12"
+                  max="30"
+                  value={textSize}
+                  onChange={(e) => setTextSize(parseInt(e.target.value))}
+                  className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  style={{
+                    background: `linear-gradient(to right, #10b981 0%, #10b981 ${
+                      ((textSize - 12) / 18) * 100
+                    }%, #e5e7eb ${
+                      ((textSize - 12) / 18) * 100
+                    }%, #e5e7eb 100%)`,
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
+                <span>Small (12px)</span>
+                <span>Large (30px)</span>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-600 mb-2 text-center">
+                Quick text sizes:
+              </p>
+              <div className="flex justify-center gap-2">
+                {[14, 18, 24].map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setTextSize(size)}
+                    className={`px-3 py-1 text-xs rounded-md transition-all ${
+                      textSize === size
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    {size === 14 ? "Small" : size === 18 ? "Medium" : "Large"}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -1299,13 +1322,39 @@ useEffect(() => {
                 Apply
               </button>
               <button
-                onClick={() => setBoardSize(550)}
+                onClick={() => {
+                  setBoardSize(550);
+                  setTextSize(18);
+                }}
                 className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 shadow-md"
               >
                 Reset
               </button>
             </div>
           </div>
+
+          {/* Slider Thumb Styles */}
+          <style jsx>{`
+            .slider::-webkit-slider-thumb {
+              appearance: none;
+              height: 20px;
+              width: 20px;
+              border-radius: 50%;
+              background: #3b82f6;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+            .slider::-moz-range-thumb {
+              height: 20px;
+              width: 20px;
+              border-radius: 50%;
+              background: #3b82f6;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+          `}</style>
         </div>
       )}
     </div>
