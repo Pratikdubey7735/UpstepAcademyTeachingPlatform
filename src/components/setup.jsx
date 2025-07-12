@@ -88,10 +88,10 @@ const Upload = () => {
     setIsLoading(true);
 
     console.log(
-      `Fetching PGN files from: https://backendteachingplatform.onrender.com/api/pgn-files?level=${level}`
+      `Fetching PGN files from: https://adminbackend-b9bo.onrender.com/api/pgn-files?level=${level}`
     );
     fetch(
-      `https://backendteachingplatform.onrender.com/api/pgn-files?level=${level}`,
+      `https://adminbackend-b9bo.onrender.com/api/pgn-files?level=${level}`,
       { signal }
     )
       .then((response) => {
