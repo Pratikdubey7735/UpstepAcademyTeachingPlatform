@@ -89,9 +89,12 @@ const Upload = () => {
     setIsLoading(true);
 
     console.log(
-      `Fetching PGN files from: http://localhost:5000/api/pgn-files?level=${level}`
+      `Fetching PGN files from: https://backendteachingplatform.onrender.com/api/pgn-files?level=${level}`
     );
-    fetch(`http://localhost:5000/api/pgn-files?level=${level}`, { signal })
+    fetch(
+      `https://backendteachingplatform.onrender.com/api/pgn-files?level=${level}`,
+      { signal }
+    )
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
