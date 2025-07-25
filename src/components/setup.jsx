@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-
 // Lazy load components
 const FEN = lazy(() => import("./FEN"));
 const NOTFEN = lazy(() => import("./NOTFEN"));
-
 // Loading component
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center p-8">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
   </div>
 );
-
 const Upload = () => {
   const [pgnFiles, setPgnFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState("");
@@ -33,27 +30,29 @@ const Upload = () => {
   // Define category hierarchy
   const categoryHierarchy = [
     "Beginner",
-    "AdvancedBeginner", 
+    "AdvancedBeginner",
     "Intermediate",
     "AdvancedPart1",
     "AdvancedPart2",
     "SubJunior",
     "Junior",
     "SeniorPart1",
-    "SeniorPart2"
+    "SeniorPart2",
   ];
 
   // Get user level and set allowed categories on component mount
   useEffect(() => {
     const storedUserLevel = sessionStorage.getItem("userLevel");
     console.log("User level from sessionStorage:", storedUserLevel);
-    
+
     if (storedUserLevel) {
       setUserLevel(storedUserLevel);
-      
+
       // Find the index of user's level in hierarchy
-      const userLevelIndex = categoryHierarchy.findIndex(cat => cat === storedUserLevel);
-      
+      const userLevelIndex = categoryHierarchy.findIndex(
+        (cat) => cat === storedUserLevel
+      );
+
       if (userLevelIndex !== -1) {
         // Allow categories from start up to user's level (inclusive)
         const allowed = categoryHierarchy.slice(0, userLevelIndex + 1);
@@ -62,7 +61,9 @@ const Upload = () => {
       } else {
         // If user level not found in hierarchy, default to just Beginner
         setAllowedCategories(["Beginner"]);
-        console.log("User level not found in hierarchy, defaulting to Beginner only");
+        console.log(
+          "User level not found in hierarchy, defaulting to Beginner only"
+        );
       }
     } else {
       // If no user level stored, default to just Beginner
@@ -88,12 +89,9 @@ const Upload = () => {
     setIsLoading(true);
 
     console.log(
-      `Fetching PGN files from: https://backendteachingplatform.onrender.com/api/pgn-files?level=${level}`
+      `Fetching PGN files from: http://localhost:5000/api/pgn-files?level=${level}`
     );
-    fetch(
-      `https://backendteachingplatform.onrender.com/api/pgn-files?level=${level}`,
-      { signal }
-    )
+    fetch(`http://localhost:5000/api/pgn-files?level=${level}`, { signal })
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -190,81 +188,89 @@ const Upload = () => {
   }, []);
 
   const levels = {
-    BeginnerClasswork: [{ value: "BeginnerClassworkPGN", label: "Classwork" }],
-    BeginnerHomework: [{ value: "BeginnerHomeworkPGN", label: "Homework" }],
-    AdvancedBeginnerClasswork: [{ value: "AdvBegClass", label: "Classwork" }],
-    AdvancedBeginnerHomework: [{ value: "AdvBegHome", label: "Homework" }],
-    IntermediateClasswork: [{ value: "InterClass", label: "Classwork" }],
-    IntermediateHomework: [{ value: "InterHome", label: "Homework" }],
-    AdvancedPart1Classwork: [{ value: "AdvanPart1Class", label: "Classwork" }],
-    AdvancedPart1Homework: [{ value: "AdvanPart1Home", label: "Homework" }],
-    AdvancedPart2Classwork: [
+    Beginner: [
+      { value: "BeginnerClassworkPGN", label: "Classwork" },
+      { value: "BeginnerHomeworkPGN", label: "Homework" },
+    ],
+    AdvancedBeginner: [
+      { value: "AdvBegClass", label: "Classwork" },
+      { value: "AdvBegHome", label: "Homework" },
+    ],
+    Intermediate: [
+      { value: "InterClass", label: "Classwork" },
+      { value: "InterHome", label: "Homework" },
+    ],
+    AdvancedPart1: [
+      { value: "AdvanPart1Class", label: "Classwork" },
+      { value: "AdvanPart1Home", label: "Homework" },
+    ],
+    AdvancedPart2: [
       { value: "AdvancePart2Class", label: "Classwork" },
+      { value: "AdvPart2Home", label: "Homework" },
     ],
-    AdvancedPart2Homework: [{ value: "AdvPart2Home", label: "Homework" }],
-    Junior_Classwork: [
-      { value: "Jr1C", label: "Jr1" },
-      { value: "Jr2C", label: "Jr2" },
-      { value: "Jr3C", label: "Jr3" },
-      { value: "Jr4C", label: "Jr4" },
-      { value: "Jr5C", label: "Jr5" },
-      { value: "Jr6C", label: "Jr6" },
+    Junior: [
+      // Classwork options
+      { value: "Jr1C", label: "Jr1 Classwork" },
+      { value: "Jr2C", label: "Jr2 Classwork" },
+      { value: "Jr3C", label: "Jr3 Classwork" },
+      { value: "Jr4C", label: "Jr4 Classwork" },
+      { value: "Jr5C", label: "Jr5 Classwork" },
+      { value: "Jr6C", label: "Jr6 Classwork" },
+      // Homework options
+      { value: "Jr1H", label: "Jr1 Homework" },
+      { value: "Jr2H", label: "Jr2 Homework" },
+      { value: "Jr3H", label: "Jr3 Homework" },
+      { value: "Jr4H", label: "Jr4 Homework" },
+      { value: "Jr5H", label: "Jr5 Homework" },
+      { value: "Jr6H", label: "Jr6 Homework" },
     ],
-    Junior_Homework: [
-      { value: "Jr1H", label: "Jr1" },
-      { value: "Jr2H", label: "Jr2" },
-      { value: "Jr3H", label: "Jr3" },
-      { value: "Jr4H", label: "Jr4" },
-      { value: "Jr5H", label: "Jr5" },
-      { value: "Jr6H", label: "Jr6" },
+    SubJunior: [
+      // Classwork options
+      { value: "SubJr1C", label: "SJr1 Classwork" },
+      { value: "SubJr2C", label: "SJr2 Classwork" },
+      { value: "SubJr3C", label: "SJr3 Classwork" },
+      { value: "SubJr4C", label: "SJr4 Classwork" },
+      { value: "SubJr5C", label: "SJr5 Classwork" },
+      { value: "SubJr6C", label: "SJr6 Classwork" },
+      // Homework options
+      { value: "SubJr1H", label: "SJr1 Homework" },
+      { value: "SubJr2H", label: "SJr2 Homework" },
+      { value: "SubJr3H", label: "SJr3 Homework" },
+      { value: "SubJr4H", label: "SJr4 Homework" },
+      { value: "SubJr5H", label: "SJr5 Homework" },
+      { value: "SubJr6H", label: "SJr6 Homework" },
     ],
-    Sub_Junior_Classwork: [
-      { value: "SubJr1C", label: "SJr1" },
-      { value: "SubJr2C", label: "SJr2" },
-      { value: "SubJr3C", label: "SJr3" },
-      { value: "SubJr4C", label: "SJr4" },
-      { value: "SubJr5C", label: "SJr5" },
-      { value: "SubJr6C", label: "SJr6" },
+    SeniorPart1: [
+      // Classwork options
+      { value: "Sr1C", label: "Sr1 Classwork" },
+      { value: "Sr2C", label: "Sr2 Classwork" },
+      { value: "Sr3C", label: "Sr3 Classwork" },
+      { value: "Sr4C", label: "Sr4 Classwork" },
+      { value: "Sr5C", label: "Sr5 Classwork" },
+      { value: "Sr6C", label: "Sr6 Classwork" },
+      // Homework options
+      { value: "Sr1H", label: "Sr1 Homework" },
+      { value: "Sr2H", label: "Sr2 Homework" },
+      { value: "Sr3H", label: "Sr3 Homework" },
+      { value: "Sr4H", label: "Sr4 Homework" },
+      { value: "Sr5H", label: "Sr5 Homework" },
+      { value: "Sr6H", label: "Sr6 Homework" },
     ],
-    Sub_Junior_Homework: [
-      { value: "SubJr1H", label: "SJr1" },
-      { value: "SubJr2H", label: "SJr2" },
-      { value: "SubJr3H", label: "SJr3" },
-      { value: "SubJr4H", label: "SJr4" },
-      { value: "SubJr5H", label: "SJr5" },
-      { value: "SubJr6H", label: "SJr6" },
-    ],
-    Senior_Part1_Classwork: [
-      { value: "Sr1C", label: "Sr1" },
-      { value: "Sr2C", label: "Sr2" },
-      { value: "Sr3C", label: "Sr3" },
-      { value: "Sr4C", label: "Sr4" },
-      { value: "Sr5C", label: "Sr5" },
-      { value: "Sr6C", label: "Sr6" },
-    ],
-    Senior_Part1_Homework: [
-      { value: "Sr1H", label: "Sr1" },
-      { value: "Sr2H", label: "Sr2" },
-      { value: "Sr3H", label: "Sr3" },
-      { value: "Sr4H", label: "Sr4" },
-      { value: "Sr5H", label: "Sr5" },
-      { value: "Sr6H", label: "Sr6" },
-    ],
-    Senior_Part2_Classwork: [
-      { value: "Sr7C", label: "Sr7" },
-      { value: "Sr8C", label: "Sr8" },
-      { value: "Sr9C", label: "Sr9" },
-      { value: "Sr10C", label: "Sr10" },
-      { value: "Sr11C", label: "Sr11" },
-      { value: "Sr12C", label: "Sr12" },
-    ],
-    Senior_Part2_Homework: [
-      { value: "Sr7H", label: "Sr7" },
-      { value: "Sr8H", label: "Sr8" },
-      { value: "Sr9H", label: "Sr9" },
-      { value: "Sr10H", label: "Sr10" },
-      { value: "Sr11H", label: "Sr11" },
-      { value: "Sr12H", label: "Sr12" },
+    SeniorPart2: [
+      // Classwork options
+      { value: "Sr7C", label: "Sr7 Classwork" },
+      { value: "Sr8C", label: "Sr8 Classwork" },
+      { value: "Sr9C", label: "Sr9 Classwork" },
+      { value: "Sr10C", label: "Sr10 Classwork" },
+      { value: "Sr11C", label: "Sr11 Classwork" },
+      { value: "Sr12C", label: "Sr12 Classwork" },
+      // Homework options
+      { value: "Sr7H", label: "Sr7 Homework" },
+      { value: "Sr8H", label: "Sr8 Homework" },
+      { value: "Sr9H", label: "Sr9 Homework" },
+      { value: "Sr10H", label: "Sr10 Homework" },
+      { value: "Sr11H", label: "Sr11 Homework" },
+      { value: "Sr12H", label: "Sr12 Homework" },
     ],
   };
 
@@ -282,14 +288,14 @@ const Upload = () => {
       // Only handle navigation if we have events loaded
       if (events.length === 0) return;
 
-      if (event.key === "ArrowUp") {
+      if (event.key === "A") {
         event.preventDefault();
         handlePrevious();
-      } else if (event.key === "ArrowDown") {
+      } else if (event.key === "B") {
         event.preventDefault();
         handleNext();
       } else if (event.key === "F11") {
-        event.preventDefault(); 
+        event.preventDefault();
         if (event.ctrlKey) {
           handlePrevious();
         } else {
@@ -335,79 +341,39 @@ const Upload = () => {
 
   // Memoize the filtered levels calculation
   const filteredLevels = React.useMemo(() => {
-    return category === "Beginner"
-      ? ["BeginnerClasswork", "BeginnerHomework"]
-      : category === "AdvancedBeginner"
-      ? ["AdvancedBeginnerClasswork", "AdvancedBeginnerHomework"]
-      : category === "Intermediate"
-      ? ["IntermediateClasswork", "IntermediateHomework"]
-      : category === "AdvancedPart1"
-      ? ["AdvancedPart1Classwork", "AdvancedPart1Homework"]
-      : category === "AdvancedPart2"
-      ? ["AdvancedPart2Classwork", "AdvancedPart2Homework"]
-      : category === "Junior"
-      ? ["Junior_Classwork", "Junior_Homework"]
-      : category === "SubJunior"
-      ? ["Sub_Junior_Classwork", "Sub_Junior_Homework"]
-      : category === "SeniorPart2"
-      ? ["Senior_Part2_Classwork", "Senior_Part2_Homework"]
-      : ["Senior_Part1_Classwork", "Senior_Part1_Homework"];
+    return levels[category] || [];
   }, [category]);
 
   // Prefetch category data when hovering over category buttons
   const handleCategoryHover = useCallback(
     (cat) => {
-      const levelsForCategory =
-        cat === "Beginner"
-          ? ["BeginnerClasswork", "BeginnerHomework"]
-          : cat === "AdvancedBeginner"
-          ? ["AdvancedBeginnerClasswork", "AdvancedBeginnerHomework"]
-          : cat === "Intermediate"
-          ? ["IntermediateClasswork", "IntermediateHomework"]
-          : cat === "AdvancedPart1"
-          ? ["AdvancedPart1Classwork", "AdvancedPart1Homework"]
-          : cat === "AdvancedPart2"
-          ? ["AdvancedPart2Classwork", "AdvancedPart2Homework"]
-          : cat === "Junior"
-          ? ["Junior_Classwork", "Junior_Homework"]
-          : cat === "SubJunior"
-          ? ["Sub_Junior_Classwork", "Sub_Junior_Homework"]
-          : cat === "SeniorPart2"
-          ? ["Senior_Part2_Classwork", "Senior_Part2_Homework"]
-          : ["Senior_Part1_Classwork", "Senior_Part1_Homework"];
+      const levelOptions = levels[cat] || [];
 
-      // For each level in this category, look at the first option
-      levelsForCategory.forEach((levelName) => {
-        const levelOptions = levels[levelName] || [];
-        if (levelOptions.length > 0) {
-          const value = levelOptions[0].value;
+      // For each level option in this category, prefetch if not cached
+      levelOptions.forEach(({ value }) => {
+        if (!fileCache[value]) {
+          const prefetchController = new AbortController();
 
-          // If we don't have this level cached, prefetch it
-          if (!fileCache[value]) {
-            const prefetchController = new AbortController();
+          // Low priority fetch that can be aborted
+          fetch(`http://localhost:5000/api/pgn-files?level=${value}`, {
+            signal: prefetchController.signal,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (Array.isArray(data)) {
+                setFileCache((prev) => ({ ...prev, [value]: data }));
+              }
+            })
+            .catch(() => {
+              // Ignore prefetch errors
+            });
 
-            // Low priority fetch that can be aborted
-            fetch(
-              `https://backendteachingplatform.onrender.com/api/pgn-files?level=${value}`,
-              { signal: prefetchController.signal }
-            )
-              .then((response) => response.json())
-              .then((data) => {
-                if (Array.isArray(data)) {
-                  setFileCache((prev) => ({ ...prev, [value]: data }));
-                }
-              })
-              .catch(() => {
-                // Ignore prefetch errors
-              });
-
-            // Abort prefetch after 5 seconds if not completed
-            setTimeout(() => prefetchController.abort(), 5000);
-          }
+          // Abort prefetch after 5 seconds if not completed
+          setTimeout(() => prefetchController.abort(), 5000);
         }
       });
     },
-    [fileCache, levels]
+    [fileCache]
   );
 
   return (
@@ -434,10 +400,7 @@ const Upload = () => {
         <div className="w-full">
           <div className="bg-white p-6 rounded-lg shadow-lg mb-6 w-full">
             {/* Display user level info */}
-            {userLevel && (
-             <></>
-            )}
-
+            {userLevel && <></>}
             <h2 className="text-2xl font-semibold mb-4 text-gray-800">
               Select Category
             </h2>
@@ -464,7 +427,6 @@ const Upload = () => {
                 </a>
               ))}
             </div>
-
             {/* Show message if no allowed categories */}
             {allowedCategories.length === 0 && (
               <div className="mb-4 p-3 bg-yellow-100 rounded-md">
@@ -477,55 +439,142 @@ const Upload = () => {
             <h2 className="text-2xl font-semibold mb-4 text-gray-800">
               Select Level
             </h2>
-            <div className="flex flex-wrap gap-4 mb-4">
-              {filteredLevels.map((levelName) => {
-                const levelOptions = levels[levelName] || [];
-                return (
-                  <div key={levelName} className="relative">
-                    <a
-                      href="#"
-                      className={`w-45 p-3 bg-gray-800 text-white rounded-md shadow-md transition-transform duration-200 ease-in-out hover:bg-green-600 focus:outline-none focus:ring focus:ring-pink-300 ${
-                        selectedLabel.includes(levelName) ? "bg-green-500" : ""
+            {/* Check if current category needs dropdown format */}
+            {["SubJunior", "Junior", "SeniorPart1", "SeniorPart2"].includes(
+              category
+            ) ? (
+              <div className="grid grid-cols-2 gap-6 mb-4">
+                {/* Classwork Column */}
+                <div className="relative">
+                  <button
+                    onClick={() =>
+                      setExpandedLevel(
+                        expandedLevel === "classwork" ? null : "classwork"
+                      )
+                    }
+                    className="w-full p-3 bg-gray-800 text-white rounded-md shadow-md hover:bg-green-600 focus:outline-none focus:ring focus:ring-pink-300 flex justify-between items-center"
+                  >
+                    <span>Classwork</span>
+                    <svg
+                      className={`w-5 h-5 transform transition-transform ${
+                        expandedLevel === "classwork" ? "rotate-180" : ""
                       }`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setExpandedLevel(
-                          expandedLevel === levelName ? null : levelName
-                        );
-                      }}
-                      onContextMenu={(e) => {
-                        e.stopPropagation();
-                      }}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      {levelName}
-                    </a>
-                    {expandedLevel === levelName && (
-                      <div className="absolute bg-white border border-gray-300 rounded-md shadow-lg z-10 mt-1 w-full">
-                        {levelOptions.map(({ value, label }) => (
-                          <a
-                            href={`/level/${value}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  {expandedLevel === "classwork" && (
+                    <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-md shadow-lg z-10 mt-1">
+                      {filteredLevels
+                        .filter(({ label }) => label.includes("Classwork"))
+                        .map(({ value, label }) => (
+                          <button
+                            key={value}
                             onClick={(e) => {
                               e.preventDefault();
                               handleLevelSelect(
                                 value,
-                                `${levelName} - ${label}`
+                                `${category} - ${label}`
                               );
                             }}
-                            className="block w-full text-left p-2 hover:bg-gray-400 focus:outline-none"
-                            key={value}
+                            className={`w-full p-3 text-left hover:bg-gray-100 focus:outline-none focus:bg-gray-100 border-b border-gray-200 last:border-b-0 ${
+                              selectedLabel.includes(label)
+                                ? "bg-green-100 text-green-800"
+                                : "text-gray-800"
+                            }`}
                           >
                             {label}
-                          </a>
+                          </button>
                         ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                    </div>
+                  )}
+                </div>
 
+                {/* Homework Column */}
+                <div className="relative">
+                  <button
+                    onClick={() =>
+                      setExpandedLevel(
+                        expandedLevel === "homework" ? null : "homework"
+                      )
+                    }
+                    className="w-full p-3 bg-gray-800 text-white rounded-md shadow-md hover:bg-green-600 focus:outline-none focus:ring focus:ring-pink-300 flex justify-between items-center"
+                  >
+                    <span>Homework</span>
+                    <svg
+                      className={`w-5 h-5 transform transition-transform ${
+                        expandedLevel === "homework" ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  {expandedLevel === "homework" && (
+                    <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-md shadow-lg z-10 mt-1">
+                      {filteredLevels
+                        .filter(({ label }) => label.includes("Homework"))
+                        .map(({ value, label }) => (
+                          <button
+                            key={value}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleLevelSelect(
+                                value,
+                                `${category} - ${label}`
+                              );
+                            }}
+                            className={`w-full p-3 text-left hover:bg-gray-100 focus:outline-none focus:bg-gray-100 border-b border-gray-200 last:border-b-0 ${
+                              selectedLabel.includes(label)
+                                ? "bg-green-100 text-green-800"
+                                : "text-gray-800"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              // Original button layout for other categories (Beginner, AdvancedBeginner, etc.)
+              <div className="grid grid-cols-2 gap-6 mb-4">
+                {filteredLevels.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleLevelSelect(value, `${category} - ${label}`);
+                    }}
+                    className={`w-full p-3 text-white rounded-md shadow-md transition-transform duration-200 ease-in-out hover:bg-green-600 focus:outline-none focus:ring focus:ring-pink-300 ${
+                      selectedLabel.includes(label)
+                        ? "bg-green-500"
+                        : "bg-gray-800"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
             <h2 className="text-2xl font-semibold mb-4 text-gray-800">
               Select Chapter
             </h2>
@@ -537,6 +586,12 @@ const Upload = () => {
                 value={selectedFile}
                 className="w-full p-3 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring focus:ring-blue-300"
                 disabled={!pgnFiles.length}
+                onKeyDown={(e) => {
+                  if (["ArrowLeft", "ArrowRight"].includes(e.key)) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                  }
+                }}
               >
                 <option value="">-- Select a PGN File --</option>
                 {pgnFiles.map((file) => (
@@ -546,7 +601,6 @@ const Upload = () => {
                 ))}
               </select>
             )}
-
             <div className="mb-6 w-full min-h-64">
               {isLoading && selectedFile && !events.length ? (
                 <LoadingSpinner />

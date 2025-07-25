@@ -34,10 +34,31 @@ function NOTFEN({ event }) {
   const [availableVariations, setAvailableVariations] = useState([]);
   const [showSizeDialog, setShowSizeDialog] = useState(false);
   const [boardSize, setBoardSize] = useState(690);
-   const [textSize, setTextSize] = useState(24);
+  const [textSize, setTextSize] = useState(24);
   const [showNewVariationDialog, setShowNewVariationDialog] = useState(false);
 
   const boardRef = useRef(null);
+
+  const handleFirstMove = () => {
+    if (!gameTree || showVariationPrompt) return;
+    navigateToPosition([]);
+  };
+
+  const handleLastMove = () => {
+    if (!gameTree || showVariationPrompt) return;
+
+    // Find the last move in the main line
+    let current = gameTree;
+    const path = [];
+
+    // Follow the main line (first child) to the end
+    while (current.children.length > 0) {
+      path.push(0); // Always take the first child (main line)
+      current = current.children[0];
+    }
+
+    navigateToPosition(path);
+  };
 
   class GameNode {
     constructor(move = null, parent = null) {
@@ -304,14 +325,24 @@ function NOTFEN({ event }) {
     };
   }, []);
 
+  // Replace your existing keyboard navigation useEffect with this updated version:
+
   useEffect(() => {
     const handleKeyNavigation = (event) => {
       if (showVariationPrompt) return;
 
       if (event.key === "ArrowRight") {
+        event.preventDefault(); // Prevent default scroll behavior
         handleNextMove();
       } else if (event.key === "ArrowLeft") {
+        event.preventDefault(); // Prevent default scroll behavior
         handlePreviousMove();
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault(); // Prevent default scroll behavior
+        handleFirstMove();
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault(); // Prevent default scroll behavior
+        handleLastMove();
       }
     };
 
@@ -968,7 +999,7 @@ function NOTFEN({ event }) {
               <h4 className="font-semibold text-lg mt-4">Moves:</h4>
 
               {movesVisible && gameTree && (
-                <div className="mt-4 overflow-x-hidden w-full max-w-full overflow-y-auto max-h-72 ">
+                <div className="mt-4 overflow-x-hidden w-full max-w-full overflow-y-auto max-h-96 ">
                   <pre className="whitespace-pre-wrap  text-gray-700 break-all m-0 p-0 leading-tight w-full max-w-full overflow-hidden text-xl font-bold">
                     {renderGameTreeChessBaseStyle(gameTree)}
                   </pre>
@@ -1117,151 +1148,160 @@ function NOTFEN({ event }) {
         </div>
       )}
       {/* Size Dialog */}
-     {showSizeDialog && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
-    <div className="bg-white p-6 rounded-2xl shadow-2xl border border-blue-500 w-full max-w-md transform transition-all scale-100">
-      <h3 className="text-xl font-semibold text-blue-700 text-center mb-6">
-        Adjust Board & Text Size
-      </h3>
+      {showSizeDialog && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl border border-blue-500 w-full max-w-md transform transition-all scale-100">
+            <h3 className="text-xl font-semibold text-blue-700 text-center mb-6">
+              Adjust Board & Text Size
+            </h3>
 
-      {/* Board Size */}
-      <div className="text-center mb-4">
-        <span className="text-2xl font-bold text-blue-600">{boardSize}px</span>
-      </div>
+            {/* Board Size */}
+            <div className="text-center mb-4">
+              <span className="text-2xl font-bold text-blue-600">
+                {boardSize}px
+              </span>
+            </div>
 
-      <div className="mb-6">
-        <div className="relative">
-          <input
-            type="range"
-            min="400"
-            max="650"
-            value={boardSize}
-            onChange={(e) => setBoardSize(parseInt(e.target.value))}
-            className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-            style={{
-              background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${
-                ((boardSize - 400) / 250) * 100
-              }%, #e5e7eb ${((boardSize - 400) / 250) * 100}%, #e5e7eb 100%)`,
-            }}
-          />
+            <div className="mb-6">
+              <div className="relative">
+                <input
+                  type="range"
+                  min="400"
+                  max="650"
+                  value={boardSize}
+                  onChange={(e) => setBoardSize(parseInt(e.target.value))}
+                  className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  style={{
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${
+                      ((boardSize - 400) / 250) * 100
+                    }%, #e5e7eb ${
+                      ((boardSize - 400) / 250) * 100
+                    }%, #e5e7eb 100%)`,
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
+                <span>Small (400px)</span>
+                <span>Large (650px)</span>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-600 mb-2 text-center">
+                Quick board sizes:
+              </p>
+              <div className="flex justify-center gap-2">
+                {[450, 550, 650].map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setBoardSize(size)}
+                    className={`px-3 py-1 text-xs rounded-md transition-all ${
+                      boardSize === size
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    {size === 450 ? "Small" : size === 550 ? "Medium" : "Large"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Text Size */}
+            <div className="text-center mb-4">
+              <span className="text-2xl font-bold text-green-600">
+                {textSize}px
+              </span>
+            </div>
+
+            <div className="mb-6">
+              <div className="relative">
+                <input
+                  type="range"
+                  min="12"
+                  max="30"
+                  value={textSize}
+                  onChange={(e) => setTextSize(parseInt(e.target.value))}
+                  className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  style={{
+                    background: `linear-gradient(to right, #10b981 0%, #10b981 ${
+                      ((textSize - 12) / 18) * 100
+                    }%, #e5e7eb ${
+                      ((textSize - 12) / 18) * 100
+                    }%, #e5e7eb 100%)`,
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
+                <span>Small (12px)</span>
+                <span>Large (30px)</span>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-sm text-gray-600 mb-2 text-center">
+                Quick text sizes:
+              </p>
+              <div className="flex justify-center gap-2">
+                {[14, 18, 24].map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setTextSize(size)}
+                    className={`px-3 py-1 text-xs rounded-md transition-all ${
+                      textSize === size
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    {size === 14 ? "Small" : size === 18 ? "Medium" : "Large"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={handleSizeDialogClose}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 shadow-md"
+              >
+                Apply
+              </button>
+              <button
+                onClick={() => {
+                  setBoardSize(550);
+                  setTextSize(18);
+                }}
+                className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 shadow-md"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+
+          {/* Slider Thumb Styles */}
+          <style jsx>{`
+            .slider::-webkit-slider-thumb {
+              appearance: none;
+              height: 20px;
+              width: 20px;
+              border-radius: 50%;
+              background: #3b82f6;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+            .slider::-moz-range-thumb {
+              height: 20px;
+              width: 20px;
+              border-radius: 50%;
+              background: #3b82f6;
+              cursor: pointer;
+              border: 2px solid white;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+          `}</style>
         </div>
-        <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
-          <span>Small (400px)</span>
-          <span>Large (650px)</span>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <p className="text-sm text-gray-600 mb-2 text-center">Quick board sizes:</p>
-        <div className="flex justify-center gap-2">
-          {[450, 550, 650].map((size) => (
-            <button
-              key={size}
-              onClick={() => setBoardSize(size)}
-              className={`px-3 py-1 text-xs rounded-md transition-all ${
-                boardSize === size
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              {size === 450 ? "Small" : size === 550 ? "Medium" : "Large"}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Text Size */}
-      <div className="text-center mb-4">
-        <span className="text-2xl font-bold text-green-600">{textSize}px</span>
-      </div>
-
-      <div className="mb-6">
-        <div className="relative">
-          <input
-            type="range"
-            min="12"
-            max="30"
-            value={textSize}
-            onChange={(e) => setTextSize(parseInt(e.target.value))}
-            className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-            style={{
-              background: `linear-gradient(to right, #10b981 0%, #10b981 ${
-                ((textSize - 12) / 18) * 100
-              }%, #e5e7eb ${( (textSize - 12) / 18 ) * 100}%, #e5e7eb 100%)`,
-            }}
-          />
-        </div>
-        <div className="flex justify-between text-xs text-gray-500 mt-2 px-1">
-          <span>Small (12px)</span>
-          <span>Large (30px)</span>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <p className="text-sm text-gray-600 mb-2 text-center">Quick text sizes:</p>
-        <div className="flex justify-center gap-2">
-          {[14, 18, 24].map((size) => (
-            <button
-              key={size}
-              onClick={() => setTextSize(size)}
-              className={`px-3 py-1 text-xs rounded-md transition-all ${
-                textSize === size
-                  ? "bg-green-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              {size === 14 ? "Small" : size === 18 ? "Medium" : "Large"}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex justify-center gap-3">
-        <button
-          onClick={handleSizeDialogClose}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 shadow-md"
-        >
-          Apply
-        </button>
-        <button
-          onClick={() => {
-            setBoardSize(550);
-            setTextSize(18);
-          }}
-          className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 shadow-md"
-        >
-          Reset
-        </button>
-      </div>
-    </div>
-
-    {/* Slider Thumb Styles */}
-    <style jsx>{`
-      .slider::-webkit-slider-thumb {
-        appearance: none;
-        height: 20px;
-        width: 20px;
-        border-radius: 50%;
-        background: #3b82f6;
-        cursor: pointer;
-        border: 2px solid white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      }
-      .slider::-moz-range-thumb {
-        height: 20px;
-        width: 20px;
-        border-radius: 50%;
-        background: #3b82f6;
-        cursor: pointer;
-        border: 2px solid white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      }
-    `}</style>
-  </div>
-)}
-
-
-
+      )}
     </div>
   );
 }

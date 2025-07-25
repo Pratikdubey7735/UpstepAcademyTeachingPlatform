@@ -39,6 +39,27 @@ function NOTFEN({ event }) {
 
   const boardRef = useRef(null);
 
+  const handleFirstMove = () => {
+    if (!gameTree || showVariationPrompt) return;
+    navigateToPosition([]);
+  };
+
+  const handleLastMove = () => {
+    if (!gameTree || showVariationPrompt) return;
+
+    // Find the last move in the main line
+    let current = gameTree;
+    const path = [];
+
+    // Follow the main line (first child) to the end
+    while (current.children.length > 0) {
+      path.push(0); // Always take the first child (main line)
+      current = current.children[0];
+    }
+
+    navigateToPosition(path);
+  };
+
   class GameNode {
     constructor(move = null, parent = null) {
       this.move = move;
@@ -304,14 +325,24 @@ function NOTFEN({ event }) {
     };
   }, []);
 
+  // Replace your existing keyboard navigation useEffect with this updated version:
+
   useEffect(() => {
     const handleKeyNavigation = (event) => {
       if (showVariationPrompt) return;
 
       if (event.key === "ArrowRight") {
+        event.preventDefault(); // Prevent default scroll behavior
         handleNextMove();
       } else if (event.key === "ArrowLeft") {
+        event.preventDefault(); // Prevent default scroll behavior
         handlePreviousMove();
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault(); // Prevent default scroll behavior
+        handleFirstMove();
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault(); // Prevent default scroll behavior
+        handleLastMove();
       }
     };
 
@@ -968,7 +999,7 @@ function NOTFEN({ event }) {
               <h4 className="font-semibold text-lg mt-4">Moves:</h4>
 
               {movesVisible && gameTree && (
-                <div className="mt-4 overflow-x-hidden w-full max-w-full overflow-y-auto max-h-72 ">
+                <div className="mt-4 overflow-x-hidden w-full max-w-full overflow-y-auto max-h-96 ">
                   <pre className="whitespace-pre-wrap  text-gray-700 break-all m-0 p-0 leading-tight w-full max-w-full overflow-hidden text-xl font-bold">
                     {renderGameTreeChessBaseStyle(gameTree)}
                   </pre>
