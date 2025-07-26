@@ -142,10 +142,7 @@ export default function EnhancedLoginForm() {
     setIsLoading(true);
 
     try {
-      const serverUrl = "http://localhost:5000";
-      console.log(`Attempting login to: ${serverUrl}/api/coaches/login`);
-      
-      const response = await fetch(`${serverUrl}/api/coaches/login`, {
+      const response = await fetch("http://localhost:5000/api/coaches/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
