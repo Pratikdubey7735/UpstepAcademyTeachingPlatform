@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }) => {
       console.log(`[AuthContext] Refreshing user data for coach: ${currentCoach._id}`);
       
       const response = await fetch(
-        `${"http://localhost:5000"}/api/coaches/${currentCoach._id}`,
+        `${"https://adminbackend-b9bo.onrender.com"}/api/coaches/${currentCoach._id}`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
@@ -146,7 +146,7 @@ export const AuthProvider = ({ children }) => {
           socket.disconnect();
         }
 
-        const serverUrl = "http://localhost:5000";
+        const serverUrl = "https://adminbackend-b9bo.onrender.com";
         console.log(`[AuthContext] Connecting to server: ${serverUrl}`);
 
         const newSocket = io(serverUrl, {
@@ -416,7 +416,7 @@ export const AuthProvider = ({ children }) => {
             // Verify with server
             try {
               const response = await fetch(
-                `${"http://localhost:5000"}/api/verify-coach`,
+                `${"https://adminbackend-b9bo.onrender.com"}/api/verify-coach`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
