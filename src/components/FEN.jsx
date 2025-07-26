@@ -5,6 +5,7 @@ import { HiArrowSmLeft, HiArrowSmRight } from "react-icons/hi";
 import { parse } from "pgn-parser";
 
 function NOTFEN({ event }) {
+  const [selectedPiece, setSelectedPiece] = useState(null);
   const [highlightedSquares, setHighlightedSquares] = useState([]);
   const [arrowColor, setArrowColor] = useState("rgba(0, 255, 0, 0.7)");
   const [arrows, setArrows] = useState([]);
@@ -209,9 +210,10 @@ function NOTFEN({ event }) {
     setEventKey(newEventKey);
 
     setHighlightedSquares([]);
-
     setArrows([]);
     setSelectedSquare(null);
+    setSelectedPiece(null); 
+   // ADD THIS LINE
     setGameOutcome(null);
     setCurrentPosition([]);
     setHasAutoMoved(false);
@@ -353,11 +355,106 @@ function NOTFEN({ event }) {
   const resetHighlights = () => {
     setHighlightedSquares([]);
     setArrows([]);
+    setSelectedPiece(null); // Add this line
+    setSelectedSquare(null); // Add this line if not already there
   };
 
   const onSquareClick = (square) => {
-    setSelectedSquare(square);
+    // If no piece is selected, try to select a piece on this square
+    if (!selectedPiece) {
+      const piece = game.get(square);
+      if (piece && piece.color === game.turn()) {
+        setSelectedPiece({ square, piece });
+        setSelectedSquare(square);
+        return;
+      }
+      setSelectedSquare(square);
+      return;
+    }
+
+    // If clicking on the same square, deselect
+    if (selectedPiece.square === square) {
+      setSelectedPiece(null);
+      setSelectedSquare(null);
+      return;
+    }
+
+    // If clicking on another piece of the same color, select that piece instead
+    const targetPiece = game.get(square);
+    if (targetPiece && targetPiece.color === game.turn()) {
+      setSelectedPiece({ square, piece: targetPiece });
+      setSelectedSquare(square);
+      return;
+    }
+
+    // Try to make a move from selected piece to target square
+    const testGame = new Chess(game.fen());
+
+    try {
+      const move = testGame.move({
+        from: selectedPiece.square,
+        to: square,
+        promotion: "q", // Default to queen promotion
+      });
+
+      if (move) {
+        // Move is valid, process it the same way as onDrop
+        const currentNode = getCurrentNode();
+        if (!currentNode) {
+          setSelectedPiece(null);
+          setSelectedSquare(null);
+          return;
+        }
+
+        // Check if this move already exists as a child
+        const existingChild = currentNode.children.find(
+          (child) => child.move && child.move.san === move.san
+        );
+
+        if (existingChild) {
+          // Move exists, navigate to it
+          const childIndex = currentNode.children.indexOf(existingChild);
+          navigateToPosition([...currentPosition, childIndex]);
+        } else {
+          // Create new move
+          const isBlackMove = game.turn() === "b";
+          const lastMove = currentNode.move;
+
+          let moveNumber;
+          if (lastMove) {
+            moveNumber = lastMove.isBlackMove
+              ? lastMove.moveNumber + 1
+              : lastMove.moveNumber;
+          } else {
+            const fullmoveNumber = parseInt(game.fen().split(" ")[5]);
+            moveNumber = fullmoveNumber;
+          }
+
+          const newMove = {
+            san: move.san,
+            comment: null,
+            isBlackMove,
+            moveNumber,
+            ply: (moveNumber - 1) * 2 + (isBlackMove ? 2 : 1),
+          };
+
+          const newChild = currentNode.addChild(newMove);
+          const childIndex = currentNode.children.indexOf(newChild);
+          navigateToPosition([...currentPosition, childIndex]);
+        }
+      }
+    } catch (error) {
+      console.error("Invalid move:", error);
+    }
+
+    // Clear selection after move attempt
+    setSelectedPiece(null);
+    setSelectedSquare(null);
+  };
+
+  const onSquareRightClick = (square) => {
     toggleSquareHighlight(square);
+    return false; // Prevent browser context menu
   };
 
   const toggleSquareHighlight = (square) => {
@@ -374,13 +471,42 @@ function NOTFEN({ event }) {
 
   const renderHighlightedSquares = () => {
     const highlightedStyles = {};
+
+    // Add manual highlights
     highlightedSquares.forEach(({ square, color }) => {
       highlightedStyles[square] = {
         backgroundColor: color,
         opacity: 0.5,
       };
     });
+
+    // Add selected piece highlight (only the selected piece, no possible moves)
+    
+
     return highlightedStyles;
+  };
+
+  // 3b. ADD NEW FUNCTION FOR RENDERING MOVE DOTS
+  const renderMoveDots = () => {
+    if (!selectedPiece) return {};
+
+    const dotStyles = {};
+    const possibleMoves = game.moves({
+      square: selectedPiece.square,
+      verbose: true,
+    });
+
+    possibleMoves.forEach((move) => {
+      const targetPiece = game.get(move.to);
+      dotStyles[move.to] = {
+        background: targetPiece
+          ? `radial-gradient(circle, transparent 65%, rgba(255, 0, 0, 0.8) 65%)` // Red ring for captures
+          : `radial-gradient(circle, rgba(0, 0, 0, 0.6) 25%, transparent 25%)`, // Black dot for empty squares
+        borderRadius: "50%",
+      };
+    });
+
+    return dotStyles;
   };
 
   const parsePGNIntoTree = (pgn, root) => {
@@ -969,8 +1095,12 @@ function NOTFEN({ event }) {
                 boardOrientation={boardOrientation}
                 customArrowColor={arrowColor}
                 customArrows={arrows}
-                customSquareStyles={renderHighlightedSquares()}
+                customSquareStyles={{
+                  ...renderHighlightedSquares(),
+                  ...renderMoveDots(),
+                }}
                 onSquareClick={onSquareClick}
+                onSquareRightClick={onSquareRightClick}
                 customNotationStyle={{
                   fontSize: `${textSize}px`,
                   fontWeight: "bold",

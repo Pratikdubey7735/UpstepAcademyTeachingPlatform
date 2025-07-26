@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 // Lazy load components
 const FEN = lazy(() => import("./FEN"));
 const NOTFEN = lazy(() => import("./NOTFEN"));
+import { useAuth } from "../context/AuthContext"; // Adjust path if needed
+
 // Loading component
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center p-8">
@@ -22,7 +24,7 @@ const Upload = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [fileCache, setFileCache] = useState({});
   const [eventCache, setEventCache] = useState({});
-  const [userLevel, setUserLevel] = useState("");
+  const { userLevel } = useAuth();
   const [allowedCategories, setAllowedCategories] = useState([]);
 
   const navigate = useNavigate();
@@ -42,35 +44,21 @@ const Upload = () => {
 
   // Get user level and set allowed categories on component mount
   useEffect(() => {
-    const storedUserLevel = sessionStorage.getItem("userLevel");
-    console.log("User level from sessionStorage:", storedUserLevel);
-
-    if (storedUserLevel) {
-      setUserLevel(storedUserLevel);
-
+    if (userLevel) {
       // Find the index of user's level in hierarchy
       const userLevelIndex = categoryHierarchy.findIndex(
-        (cat) => cat === storedUserLevel
+        (cat) => cat === userLevel
       );
 
       if (userLevelIndex !== -1) {
-        // Allow categories from start up to user's level (inclusive)
         const allowed = categoryHierarchy.slice(0, userLevelIndex + 1);
         setAllowedCategories(allowed);
         console.log("Allowed categories:", allowed);
       } else {
-        // If user level not found in hierarchy, default to just Beginner
         setAllowedCategories(["Beginner"]);
-        console.log(
-          "User level not found in hierarchy, defaulting to Beginner only"
-        );
       }
-    } else {
-      // If no user level stored, default to just Beginner
-      setAllowedCategories(["Beginner"]);
-      console.log("No user level found, defaulting to Beginner only");
     }
-  }, []);
+  }, [userLevel]);
 
   // Fetch files with caching and abort controller
   useEffect(() => {
